@@ -1,0 +1,48 @@
+---
+title: "AlexaReviewsSentimentAnalysis"
+output: pdf_document
+---
+
+```{r}
+library(Hmisc)
+alexa_reviews <- read.csv("amazon_alexa.csv")
+alexa_reviews <- alexa_reviews[1:100,1:4]
+w<-table(alexa_reviews$rating)
+t<-as.data.frame(w)
+data<-as.data.frame(t)
+data$percent = round(100*data$Freq/sum(data$Freq), digits = 1)
+data$label = paste(data$Var1," (", data$percent,"%)", sep = "")
+custom_colors <- c("red","Darkgreen","Yellow","Tomato","Purple")
+pie(data$Freq, labels = data$label,main = "Amazon Ratings",col=custom_colors)
+```
+```{r}
+pacman::p_load(sentimentr, dplyr, magrittr)
+sentiment(alexa_reviews$verified_reviews)
+temp <- alexa_reviews
+i<-1
+for(review in temp$verified_reviews)
+{
+   temp$Sentiment[i] <- sentiment(review)$sentiment
+   if(temp$Sentiment[i] > 0)
+   {
+       temp$category[i] = "Positive"
+   }
+   else if(temp$Sentiment[i] < 0)
+   {
+       temp$category[i] = "Negative"
+   }
+   else if(temp$Sentiment[i] == 0)
+   {
+       temp$category[i] = "Neutral"
+   }
+   i<-i+1
+}
+custom_colors <- c("red","Yellow","Darkgreen")
+category_frequency <- table(temp$category)
+prob <- prop.table(category_frequency)
+data<-as.data.frame(prob)
+data$percent = round(100*data$Freq/sum(data$Freq), digits = 1)
+data$label = paste(data$Var1," (", data$percent,"%)", sep = "")
+pie(data$Freq, labels = data$label, col = custom_colors,main = "Alexa Review Sentiment Analysis")
+```
+
